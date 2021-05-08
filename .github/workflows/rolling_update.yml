@@ -1,0 +1,70 @@
+name: Rolling Update
+on:
+  workflow_dispatch:
+    inputs:
+      unk:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    # Daily
+    #- cron: '0 8 * * *'
+    # Every 3 days
+    - cron: '0 0 */3 * *'
+jobs:
+  build:
+    name: Rolling update
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare command depends
+        run: |
+          sudo npm i -g @vercel/ncc
+      
+      - name: Checkout
+        uses: actions/checkout@v2
+        repository: actions/upload-artifact
+  
+      - name: Set Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+  
+      - name: npm install
+        run: npm install
+  
+      - name: npm release
+        run: npm run release
+
+      - name: "Patch code" # patch getUploadChunkSize, getRetryLimit, getRetryMultiplier, getInitialRetryIntervalInMilliseconds, createHttpClient
+        run: |
+          sed -i 's|8 \* 1024 \* 1024|512 * 1024|g' dist/index.js
+          sed -i 's|return 5;|return 10000;|g' dist/index.js
+          sed -i 's|return 1\.5;|return 1\.0;|g' dist/index.js
+          sed -i 's|return 3000;|return 2000;|g' dist/index.js
+          sed -i 's| \* retryCount||g' dist/index.js
+          perl -0777 -i.original -pe 's/config_variables_1\.getRuntimeToken\(\)\)\n.*\]/config_variables_1\.getRuntimeToken\(\)\)\]\, \{socketTimeout: 12000\}/g' dist/index.js
+      #- name: Setup tmate session
+      #  uses: mxschmitt/action-tmate@v3
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      - name: Commit files
+        run: |
+          git config --local user.email "buildworker@misty.moe"
+          git config --local user.name "NyaMistyBuildWorker"
+          if git diff-index --quiet HEAD; then 
+            # Working directory clean
+            echo "No changes, have a good day~"
+          else 
+            # Uncommitted changes
+            git commit -m "AutoUpdate-${{ steps.date.outputs.date }}" -a
+            git tag -f -a -m "Nightly-${{ steps.date.outputs.date }}" nightly
+          fi
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: build
+          tags: true
+          force: true
