@@ -25,6 +25,10 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: actions/upload-artifact
+      - name: Re-root Git Repo
+        run: |
+          git rev-parse --verify master >> .git/info/grafts
+          git filter-branch -- --all
   
       - name: Set Node.js 12.x
         uses: actions/setup-node@v1
