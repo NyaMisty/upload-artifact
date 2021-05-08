@@ -29,6 +29,8 @@ jobs:
         run: |
           rm -rf .git
           git init
+          git config --local user.email "buildworker@misty.moe"
+          git config --local user.name "NyaMistyBuildWorker"
           git add . && git commit -m "Initial commit"
   
       - name: Set Node.js 12.x
@@ -57,8 +59,6 @@ jobs:
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
       - name: Commit files
         run: |
-          git config --local user.email "buildworker@misty.moe"
-          git config --local user.name "NyaMistyBuildWorker"
           if git diff-index --quiet HEAD; then 
             # Working directory clean
             echo "No changes, have a good day~"
