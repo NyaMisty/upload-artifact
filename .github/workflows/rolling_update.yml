@@ -23,7 +23,8 @@ jobs:
       
       - name: Checkout
         uses: actions/checkout@v2
-        repository: actions/upload-artifact
+        with:
+          repository: actions/upload-artifact
   
       - name: Set Node.js 12.x
         uses: actions/setup-node@v1
