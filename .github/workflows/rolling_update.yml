@@ -27,7 +27,7 @@ jobs:
           repository: actions/upload-artifact
       - name: Re-root Git Repo
         run: |
-          rm -rf .git
+          rm -rf .git .github
           git init
           git config --local user.email "buildworker@misty.moe"
           git config --local user.name "NyaMistyBuildWorker"
