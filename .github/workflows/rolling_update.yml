@@ -27,8 +27,9 @@ jobs:
           repository: actions/upload-artifact
       - name: Re-root Git Repo
         run: |
-          git rev-parse --verify master >> .git/info/grafts
-          git filter-branch -- --all
+          rm -rf .git
+          git init
+          git add . && git commit -m "Initial commit"
   
       - name: Set Node.js 12.x
         uses: actions/setup-node@v1
