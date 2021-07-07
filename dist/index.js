@@ -4093,23 +4093,23 @@ exports.getUploadFileConcurrency = getUploadFileConcurrency;
 // When uploading large files that can't be uploaded with a single http call, this controls
 // the chunk size that is used during upload
 function getUploadChunkSize() {
-    return 8 * 1024 * 1024; // 8 MB Chunks
+    return 512 * 1024; // 8 MB Chunks
 }
 exports.getUploadChunkSize = getUploadChunkSize;
 // The maximum number of retries that can be attempted before an upload or download fails
 function getRetryLimit() {
-    return 5;
+    return 10000;
 }
 exports.getRetryLimit = getRetryLimit;
 // With exponential backoff, the larger the retry count, the larger the wait time before another attempt
 // The retry multiplier controls by how much the backOff time increases depending on the number of retries
 function getRetryMultiplier() {
-    return 1.5;
+    return 1.0;
 }
 exports.getRetryMultiplier = getRetryMultiplier;
 // The initial wait time if an upload or download fails and a retry is being attempted for the first time
 function getInitialRetryIntervalInMilliseconds() {
-    return 3000;
+    return 2000;
 }
 exports.getInitialRetryIntervalInMilliseconds = getInitialRetryIntervalInMilliseconds;
 // The number of concurrent downloads that happens at the same time
@@ -8146,7 +8146,7 @@ function getExponentialRetryTimeInMilliseconds(retryCount) {
     else if (retryCount === 0) {
         return config_variables_1.getInitialRetryIntervalInMilliseconds();
     }
-    const minTime = config_variables_1.getInitialRetryIntervalInMilliseconds() * config_variables_1.getRetryMultiplier() * retryCount;
+    const minTime = config_variables_1.getInitialRetryIntervalInMilliseconds() * config_variables_1.getRetryMultiplier();
     const maxTime = minTime * config_variables_1.getRetryMultiplier();
     // returns a random number between the minTime (inclusive) and the maxTime (exclusive)
     return Math.random() * (maxTime - minTime) + minTime;
@@ -8301,8 +8301,7 @@ function getUploadHeaders(contentType, isKeepAlive, isGzip, uncompressedLength, 
 exports.getUploadHeaders = getUploadHeaders;
 function createHttpClient(userAgent) {
     return new http_client_1.HttpClient(userAgent, [
-        new auth_1.BearerCredentialHandler(config_variables_1.getRuntimeToken())
-    ]);
+        new auth_1.BearerCredentialHandler(config_variables_1.getRuntimeToken())], {socketTimeout: 12000});
 }
 exports.createHttpClient = createHttpClient;
 function getArtifactUrl() {
